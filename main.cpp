@@ -12,9 +12,14 @@ struct instructions{
 typedef struct instructions instruct;
 
 string read_input(){
-    //  here getch will be used
-    string input;
-    getline(cin, input);
+    
+    char c[100000];
+    int i = 0;
+    while((c[i] = getchar())!='\n'){
+        i++;
+    }
+    c[i] = '\0';
+    string input(c);
     return input;
 }
 
@@ -39,35 +44,88 @@ vector<instruct> parse_input(string input){
 
 void execute_instruction(vector<instruct> vec){
     
-    instruct temp;
-    int count = 0;
-    for(int i=0;i<vec.size();i++){
+    for(int i=0;i<vec.size()-1;i++){
+        instruct temp;
         temp = vec[i];
 
-        vector<string> str;
-        str = temp.parameters;
-
-        char *argv[2048];
-
-        int index = 0;
-        vector<string>::iterator it;
-
-        for(it = str.begin(); it!=str.end();it++){
-            string s = *it;
-            argv[count] = (char *)malloc((str.size()+1)*(sizeof(char)));
-            strcpy(argv[index++], s.c_str());
-            count++;
+        //
+        int pd[2];
+        
+        if(pipe(pd)<0){
+            printf("error creating pipe");
+            exit(EXIT_FAILURE);
         }
 
-        argv[index] = (char*)NULL;
-        execvp(argv[0], (char* const*)argv);
-    }   
+        if(!fork()){
+
+
+            dup2(pd[1],1);
+    
+            vector<string> str;
+            str = temp.parameters;
+
+            char *argv[2048];
+
+            int index = 0;
+            vector<string>::iterator it;
+
+            for(it = str.begin(); it!=str.end();it++){
+                string s = *it;
+                argv[index] = (char *)malloc((str.size()+1)*(sizeof(char)));
+                strcpy(argv[index++], s.c_str());
+            }
+            if(strcmp(argv[0],"cd")==0)
+            {
+                chdir(argv[1]);
+            }
+            
+            argv[index] = (char*)NULL;
+            execvp(argv[0], (char* const*)argv);
+            
+            for(int i=0;i<index;i++){
+                free(argv[i]);
+            }   
+            perror("exec");
+            abort();
+        }
+        dup2(pd[0], 0);
+        close(pd[1]);    
+    }
+
+    instruct temp;
+    temp = vec[vec.size()-1];
+    vector<string> str;
+    str = temp.parameters;
+
+    char *argv[2048];
+
+    int index = 0;
+    vector<string>::iterator it;
+
+    for(it = str.begin(); it!=str.end();it++){
+        string s = *it;
+        argv[index] = (char *)malloc((str.size()+1)*(sizeof(char)));
+        strcpy(argv[index++], s.c_str());
+    }
+    if(strcmp(argv[0],"cd")==0)
+    {
+        chdir(argv[1]);
+    }       
+    argv[index] = (char*)NULL;
+    execvp(argv[0], (char* const*)argv);
+
+    for(int i=0;i<index;i++){
+        free(argv[i]);
+    }
+    perror("exec");
+    abort();   
+
 }
 int main(){
 
 
     //init_shell();
-    
+
     while(1){
     //take input a string with getch
     string input = read_input();
