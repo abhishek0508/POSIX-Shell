@@ -1,6 +1,8 @@
 
-#include"utils.h"
+#include "utils.h"
+#include "setmyrc.h"
 #include "initshell.h"
+#include "addhistory.h"
 
 using namespace std;
 
@@ -16,12 +18,46 @@ string read_input(){
     
     char c[100000];
     int i = 0;
-    while((c[i] = getchar())!='\n'){
-        i++;
+    int add_history_flag = 0;
+    while((c[i] = getchar())){
+        if((int)c[i] == 10){
+            add_history_flag = 1;
+            break;
+        }
+        else if((int)c[i] == 27){
+            print_history();
+            // cout<<"ls";
+        }
+        else if(c[i] == 0x7f && i>0){
+            cout<<"\b";
+            cout<<" ";
+            cout<<"\b";
+            i--;
+        }
+        else{
+            if((int)c[i]!=27){
+                cout<<c[i];
+                i++;
+            }
+        }
     }
+    cout<<endl;
     c[i] = '\0';
     string input(c);
+
+    if(add_history_flag == 1){
+        adhistory(input);
+    }
     return input;
+
+    // char c[100000];
+    // read(STDIN_FILENO, c , 100);
+    // // while(read(STDIN_FILENO, &c[i], 1) == 1){
+    // //     i++;
+    // // }
+    // //c[i] = '\0';
+    // string input(c);
+    // return input;
 }
 
 vector<instruct> parse_input(string input){
@@ -111,23 +147,34 @@ void execute_instruction(vector<instruct> vec){
     if(strcmp(argv[0],"cd")==0)
     {
         chdir(argv[1]);
-    }       
-    argv[index] = (char*)NULL;
-    execvp(argv[0], (char* const*)argv);
-
-    for(int i=0;i<index;i++){
-        free(argv[i]);
+    }  
+    // prompt handle in case here    
+    else if(strcmp("PS1",argv[0])==0){
+        setShell("PS1", argv[1]);
     }
-    perror("exec");
-    abort();   
-
+    else if(strcmp("echo", argv[0]) == 0)
+    {
+        cout<<get(argv[1])<<endl;
+    }
+    else{
+        argv[index] = (char*)NULL;
+        execvp(argv[0], (char* const*)argv);
+        for(int i=0;i<index;i++){
+            free(argv[i]);
+        }    
+        perror("exec");
+        abort();
+    }
 }
 int main(){
 
     // initialize shell
-    // init_shell();
+    init_shell();
 
     while(1){
+    // display prompt
+    cout<<get("PS1");
+
     //take input a string with getch
     string input = read_input();
 
