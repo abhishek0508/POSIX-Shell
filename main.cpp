@@ -1,5 +1,6 @@
 
 #include"utils.h"
+#include "initshell.h"
 
 using namespace std;
 
@@ -123,8 +124,8 @@ void execute_instruction(vector<instruct> vec){
 }
 int main(){
 
-
-    //init_shell();
+    // initialize shell
+    // init_shell();
 
     while(1){
     //take input a string with getch

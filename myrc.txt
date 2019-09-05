@@ -1,0 +1,3 @@
+PATH=/bin:/usr/bin:/usr/local/bin:/sbin
+HOME=This is not true
+PS1=@
