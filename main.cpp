@@ -3,6 +3,7 @@
 #include "setmyrc.h"
 #include "initshell.h"
 #include "addhistory.h"
+#include "search_trie.h"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ string read_input(){
     char c[100000];
     int i = 0;
     int add_history_flag = 0;
+    vector<string> vec;
     int history_count = countbuf;
     while((c[i] = getchar())){
         if((int)c[i] == 10){
@@ -46,6 +48,17 @@ string read_input(){
             cout<<" ";
             cout<<"\b";
             i--;
+        }
+        else if(c[i] == '\t'){
+            c[i]='\0';
+            string input(c);
+            vec = suggestions(input);
+            if(!vec.empty()){
+                for(string s: vec){
+                    cout<<s<<endl;
+                }
+            }
+            c[i]='\n';
         }
         else{
             if((int)c[i]!=27){
@@ -167,9 +180,27 @@ void execute_instruction(vector<instruct> vec){
     }
     else if(strcmp("echo", argv[0]) == 0)
     {
-        cout<<get(argv[1])<<endl;
+        if(strcmp(argv[1],"$$")==0)
+            cout<<getppid()<<endl;
+        else
+            cout<<get(argv[1])<<endl;
     }
     else{
+        int flag3=0;
+        if(argv[1]!=NULL){
+            if(strcmp(argv[1],">")==0 || strcmp(argv[1],">>")==0){
+
+                flag3 = 1;
+                int fd1 = open(argv[2], O_CREAT | O_WRONLY | O_APPEND, 0644);
+                dup2(fd1, 1);
+                argv[1] = 0;
+                execvp(argv[0], (char* const*)argv);
+                close(fd1);
+                perror("exec");
+                abort();
+            }
+        }
+        if(flag3==0){
         argv[index] = (char*)NULL;
         execvp(argv[0], (char* const*)argv);
         for(int i=0;i<index;i++){
@@ -177,6 +208,7 @@ void execute_instruction(vector<instruct> vec){
         }    
         perror("exec");
         abort();
+        }
     }
 }
 int main(){
@@ -184,40 +216,29 @@ int main(){
     // initialize shell
     init_shell();
 
+    //initialize trie
+    init_trie();
+
     while(1){
-    // display prompt
-    cout<<get("PS1");
+        // display prompt
+        cout<<get("PS1");
 
-    //take input a string with getch
-    string input = read_input();
+        //take input a string with getch
+        string input = read_input();
 
 
-    // exit from shell, on exit keyword
-    string input2 = "exit";
-    if(input.compare(input2) == 0)
-    break;
-    //parse with pipes
-    vector<instruct> vec;
-    vec = parse_input(input);
+        // exit from shell, on exit keyword
+        string input2 = "exit";
+        if(input.compare(input2) == 0)
+        break;
 
-    //print the vector<instruct>
-    vector<instruct>::iterator it;
-    // for(it = vec.begin(); it!=vec.end(); it++){
+        //parse with pipes
+        vector<instruct> vec;
+        vec = parse_input(input);
 
-    //     vector<string> param;
-    //     param = it->parameters;
-
-    //     vector<string>::iterator it1;
-        
-    //     for(it1 = param.begin(); it1!=param.end(); it1++){
-    //         cout<<*it1<<endl;;
-    //     }
-    // }
-
-    // create child process & execute instruction
-
-    int id = fork();
-    int status = 0;
+        // create child process & execute instruction
+        int id = fork();
+        int status = 0;
         if(id == 0){
             execute_instruction(vec);
             exit(-1);
