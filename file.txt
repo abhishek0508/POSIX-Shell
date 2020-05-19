@@ -1,0 +1,14 @@
+1
+2
+3
+addhistory.h
+a.out
+commadsToExecute
+file.txt
+initshell.h
+main.cpp
+myrc.txt
+README.md
+search_trie.h
+setmyrc.h
+utils.h

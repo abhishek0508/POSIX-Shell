@@ -64,8 +64,6 @@ void printRecursive(Trie *temp, vector<string> &vec, string prefix){
 
 
 vector<string> suggestions(string query){
-
-
     Trie *temp = root;
 
     int len = query.length();
