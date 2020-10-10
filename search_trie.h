@@ -2,7 +2,7 @@
 using namespace std;
 struct trie{
     bool isEndofWord;
-    struct trie *next[26];
+    struct trie *next[256];
 };
 
 typedef struct trie Trie;
@@ -41,6 +41,8 @@ void insert_trie(string key, Trie *root){
         crawl = crawl->next[index];
     }
     crawl->isEndofWord=true;
+
+    return;
 }
 
 void printRecursive(Trie *temp, vector<string> &vec, string prefix){
@@ -60,10 +62,13 @@ void printRecursive(Trie *temp, vector<string> &vec, string prefix){
             printRecursive(temp->next[i], vec, prefix+char(i+97));
         }
     }   
+    return;
 }
 
 
 vector<string> suggestions(string query){
+
+
     Trie *temp = root;
 
     int len = query.length();
@@ -96,15 +101,19 @@ vector<string> suggestions(string query){
         printRecursive(temp, vec, query);
         return vec;
     }
+
+    return vec;
 }   
 
 bool isContainsOtherThanCharacter(char *str){
     for(int i=0;str[i]!='\0';i++){
-        if( isalpha(str[i]))
+        if(isalpha(str[i]))
             continue;
         else
             return true;
     }
+
+    return false;
 }
 
 
